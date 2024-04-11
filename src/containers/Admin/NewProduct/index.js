@@ -28,14 +28,17 @@ function NewProduct() {
     price: Yup.string().required('Digite o preço do produto'),
     category: Yup.object().required('Selecione a categoria'),
     file: Yup.mixed()
-      .test('required, Carregue um arquivo', value => {
+      .test('required', 'Carregue um arquivo', value => {
         return value?.length > 0
       })
       .test('fileSize', 'Carregue arquivos de até 2mb', value => {
         return value[0]?.size <= 2000000
       })
       .test('type', 'Carregue apenas arquivos JPEG e PNG', value => {
-        return value[0]?.type === 'image/jpeg' || value[0].type === 'image/png'
+        return (
+          value &&
+          (value[0]?.type === 'image/jpeg' || value[0]?.type === 'image/png')
+        )
       }),
     offer: Yup.bool()
   })
@@ -48,6 +51,7 @@ function NewProduct() {
   } = useForm({
     resolver: yupResolver(schema)
   })
+
   const onSubmit = async data => {
     const productDataFormData = new FormData()
 
@@ -134,7 +138,7 @@ function NewProduct() {
           <Label>Produto em oferta?</Label>
         </OfferContainer>
 
-        <ButtonStyles>Adicionar Produto</ButtonStyles>
+        <ButtonStyles type="submit">Adicionar Produto</ButtonStyles>
       </form>
     </Container>
   )
