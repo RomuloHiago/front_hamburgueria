@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup'
-import React from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useHistory } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -22,8 +22,10 @@ import {
 
 export function Login() {
   const history = useHistory()
-
   const { putUserdata } = useUser()
+
+  const [emailErrorDisplayed, setEmailErrorDisplayed] = useState(false)
+  const [passwordErrorDisplayed, setPasswordErrorDisplayed] = useState(false)
 
   const schema = Yup.object().shape({
     email: Yup.string()
@@ -43,26 +45,42 @@ export function Login() {
   })
 
   const onSubmit = async clientData => {
-    const { data } = await toast.promise(
-      api.post('sessions', {
-        email: clientData?.email,
-        password: clientData?.password
-      }),
-      {
-        loading: 'Carregando dados',
-        success: 'Login efetuado com sucesso',
-        error: 'E-mail ou senha incorretos. Verifique e tente novamente'
-      }
-    )
-    putUserdata(data)
+    try {
+      const { data } = await toast.promise(
+        api.post('sessions', {
+          email: clientData?.email,
+          password: clientData?.password
+        }),
+        {
+          loading: 'Carregando dados',
+          success: 'Login efetuado com sucesso',
+          error: 'E-mail ou senha incorretos. Verifique e tente novamente'
+        }
+      )
+      putUserdata(data)
 
-    setTimeout(() => {
-      if (data.admin) {
-        history.push(paths.Order)
+      setTimeout(() => {
+        if (data.admin) {
+          history.push(paths.Order)
+        } else {
+          history.push('/')
+        }
+      }, 1000)
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        const errorMessage = error.response.data?.message || ''
+
+        if (errorMessage.includes('email')) {
+          setEmailErrorDisplayed(true)
+        } else {
+          setPasswordErrorDisplayed(true)
+        }
       } else {
-        history.push('/')
+        toast.error(
+          'Ocorreu um erro ao tentar fazer login. Por favor, tente novamente mais tarde.'
+        )
       }
-    }, 1000)
+    }
   }
 
   return (
@@ -75,20 +93,16 @@ export function Login() {
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Label>Email</Label>
-          <Input
-            onError={errors.email?.message}
-            type="email"
-            {...register('email')}
-          />
-          <ErrorMessage>{errors.email?.message}</ErrorMessage>
+          <Input type="email" {...register('email')} />
+          {errors.email && !emailErrorDisplayed && (
+            <ErrorMessage>{errors.email.message}</ErrorMessage>
+          )}
 
           <Label>Senha</Label>
-          <Input
-            onError={errors.password?.message}
-            type="password"
-            {...register('password')}
-          />
-          <ErrorMessage>{errors.password?.message}</ErrorMessage>
+          <Input type="password" {...register('password')} />
+          {errors.password && !passwordErrorDisplayed && (
+            <ErrorMessage>{errors.password.message}</ErrorMessage>
+          )}
 
           <Button
             autoComplete="current-password"
