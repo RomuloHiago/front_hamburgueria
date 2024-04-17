@@ -3,7 +3,7 @@ import axios from 'axios'
 const apiCodeBurger = axios.create({
   // baseURL: 'https://codeburgerapi-production.up.railway.app/'
 
-  baseURL: 'http://localhost:3001' /// CONEXAO COM O MINHA API (BACK-END)
+  baseURL: 'https://backhamburgueria-production.up.railway.app/' // 'http://localhost:3001'  CONEXAO COM O MINHA API (BACK-END)
 
   // baseURL: 'https://burgershop-api.vercel.app/'
 })
